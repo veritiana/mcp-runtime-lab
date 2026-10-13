@@ -1,4 +1,7 @@
 # MCP Runtime Lab
+### [Explore MCP Runtime Lab on Hugging Face](https://huggingface.co/spaces/veritiana-ai/mcp-runtime-lab-live)
+
+Interactive architecture explorer — process orchestration, Docker, Kubernetes and MCP runtime management.
 
 **by [VERITIANA](https://www.veritiana.com)**
 
