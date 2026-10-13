@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mcp-runtime-data
+  namespace: {{ include "mcp-runtime-lab.namespace" . }}
+spec:
+  accessModes: ['ReadWriteOnce']
+  resources:
+    requests:
+      storage: {{ .Values.storage.size }}

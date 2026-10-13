@@ -1,0 +1,14 @@
+# OPTIONAL, HIGH PRIVILEGE: grants control-plane access to host Docker Engine.
+# Enable ONLY in a trusted development environment:
+# DOCKER_ENABLED=true docker compose -f compose.yaml -f compose.docker-management.yaml up -d --build
+services:
+  control-plane:
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      DOCKER_ENABLED: 'true'
+      DOCKER_NETWORK: mcp-runtime-net
+    # Docker socket is commonly root:docker, with group id varying by host.
+    # Configure socket group GID on your host with DOCKER_SOCK_GID=$(stat -c %g /var/run/docker.sock).
+    group_add:
+      - '${DOCKER_SOCK_GID:?Set DOCKER_SOCK_GID to Docker socket group ID}'

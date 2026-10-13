@@ -1,0 +1,33 @@
+digraph MCP {
+  graph [rankdir=TB, bgcolor="#0b1420", pad="0.5", nodesep="0.5", ranksep="0.62", splines=ortho, fontname="DejaVu Sans"];
+  node [fontname="DejaVu Sans", shape=box, style="rounded,filled", fillcolor="#172738", color="#3c566c", fontcolor="#edf7fc", fontsize=12, penwidth=1.25, margin="0.23,0.15"];
+  edge [color="#68d5bd", arrowsize=0.7, penwidth=1.5, fontname="DejaVu Sans", fontcolor="#bad1d8", fontsize=10];
+  agents [label="AI agents / MCP clients", fillcolor="#123f40", color="#52d8bc"];
+  dashboard [label="Web Dashboard\nRegister · Inspect · Test · Scale · Logs · Benchmark", fillcolor="#173648"];
+  control [label="MCP Control Plane\nREST API + MCP Streamable HTTP\nAuth · Registry · Metrics · Audit", fillcolor="#183c45", color="#4ed8bb", penwidth=2];
+  store [label="Persistent JSON Registry\nSingle control-plane replica", fillcolor="#25384b"];
+  prometheus [label="Prometheus /metrics", fillcolor="#25384b"];
+  stdio [label="Stdio Process Pool\nManaged subprocesses · stdin/stdout pipes", fillcolor="#132f38", color="#4ed8bb"];
+  docker [label="Docker Engine Adapter\nUnix socket · containers", fillcolor="#173348"];
+  k8s [label="Kubernetes Adapter\nNamespace-scoped Deployments + Services", fillcolor="#173348"];
+  http [label="Remote HTTP MCP\nOutbound MCP client", fillcolor="#173348"];
+  workers [label="MCP workers\nPID 1 · PID 2 · PID N", fillcolor="#172c39"];
+  pods [label="MCP Pods\nContainer replicas", fillcolor="#172c39"];
+  containers [label="Docker MCP containers", fillcolor="#172c39"];
+  remote [label="External MCP services", fillcolor="#172c39"];
+  dashboard -> control [label="Admin REST"];
+  agents -> control [label="MCP /mcp/:id"];
+  control -> store [color="#8ba4bd"];
+  control -> prometheus [color="#8ba4bd"];
+  control -> stdio;
+  control -> docker;
+  control -> k8s;
+  control -> http;
+  stdio -> workers [label="IPC"];
+  docker -> containers [label="Engine API"];
+  k8s -> pods [label="K8s API"];
+  http -> remote [label="HTTPS"];
+  {rank=same; dashboard; agents}
+  {rank=same; stdio; docker; k8s; http}
+  {rank=same; workers; containers; pods; remote}
+}

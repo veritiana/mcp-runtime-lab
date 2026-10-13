@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-runtime-lab
+  namespace: {{ include "mcp-runtime-lab.namespace" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels: {app: mcp-runtime-lab}
+  template:
+    metadata:
+      labels: {app: mcp-runtime-lab}
+    spec:
+      serviceAccountName: mcp-runtime-lab
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+      - name: control-plane
+        image: '{{ .Values.image.repository }}:{{ .Values.image.tag }}'
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+          - containerPort: 8787
+        env:
+          - {name: HOST, value: '0.0.0.0'}
+          - {name: PORT, value: '8787'}
+          - {name: DATA_DIR, value: '/app/.data'}
+          - {name: DEMO_SEED, value: 'true'}
+          - {name: K8S_NAMESPACE, valueFrom: {fieldRef: {fieldPath: metadata.namespace}}}
+          - name: MCP_ADMIN_TOKEN
+            valueFrom: {secretKeyRef: {name: {{ .Values.secrets.existingSecret }}, key: admin-token}}
+          - name: MCP_AGENT_TOKEN
+            valueFrom: {secretKeyRef: {name: {{ .Values.secrets.existingSecret }}, key: agent-token}}
+        volumeMounts:
+          - {name: state, mountPath: '/app/.data'}
+          - {name: tmp, mountPath: '/tmp'}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        readinessProbe:
+          httpGet: {path: /readyz, port: 8787}
+        livenessProbe:
+          httpGet: {path: /healthz, port: 8787}
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: {drop: ['ALL']}
+      volumes:
+        - name: state
+          persistentVolumeClaim: {claimName: mcp-runtime-data}
+        - name: tmp
+          emptyDir: {sizeLimit: 64Mi}

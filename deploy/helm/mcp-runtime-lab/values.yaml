@@ -1,0 +1,20 @@
+replicaCount: 1  # Singleton control plane; JSON state backed by a persistent volume.
+image:
+  repository: mcp-runtime-lab
+  tag: local
+  pullPolicy: IfNotPresent
+service:
+  port: 8787
+  type: ClusterIP
+storage:
+  size: 1Gi
+namespaceOverride: ''
+secrets:
+  existingSecret: mcp-runtime-secrets
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: '2'
+    memory: 1Gi

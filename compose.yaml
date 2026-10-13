@@ -1,0 +1,57 @@
+name: mcp-runtime-lab
+services:
+  control-plane:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile
+    image: mcp-runtime-lab:local
+    init: true
+    restart: unless-stopped
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8787
+      DATA_DIR: /app/.data
+      MCP_ADMIN_TOKEN: ${MCP_ADMIN_TOKEN:?Set MCP_ADMIN_TOKEN in .env}
+      MCP_AGENT_TOKEN: ${MCP_AGENT_TOKEN:?Set MCP_AGENT_TOKEN in .env}
+      DEMO_SEED: ${DEMO_SEED:-true}
+      DOCKER_ENABLED: ${DOCKER_ENABLED:-false}
+      DOCKER_NETWORK: ${DOCKER_NETWORK:-mcp-runtime-net}
+    ports:
+      - '127.0.0.1:8787:8787'
+    volumes:
+      - mcp-data:/app/.data
+    networks: [mcp-runtime-net]
+    security_opt: ['no-new-privileges:true']
+    cap_drop: ['ALL']
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,uid=1000,gid=1000
+    pids_limit: 256
+    mem_limit: 768m
+    healthcheck:
+      test: ['CMD','node','-e',"fetch('http://127.0.0.1:8787/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+  demo-http-mcp:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.mcp
+    image: mcp-runtime-example:local
+    restart: unless-stopped
+    init: true
+    networks: [mcp-runtime-net]
+    security_opt: ['no-new-privileges:true']
+    cap_drop: ['ALL']
+    read_only: true
+    mem_limit: 256m
+    healthcheck:
+      test: ['CMD','node','-e',"fetch('http://127.0.0.1:8080/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+volumes:
+  mcp-data:
+networks:
+  mcp-runtime-net:
+    name: mcp-runtime-net
